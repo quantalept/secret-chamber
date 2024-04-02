@@ -5,8 +5,8 @@
         <v-col class="category-class"> Categories </v-col>
         <v-col class="icon-align">
           <v-icon size="x-large" @click="toggleIconVisibility"
-            >mdi-pencil-circle-outline</v-icon
-          >
+          title="Delete"
+          >mdi-pencil-circle-outline</v-icon>
         </v-col>
       </v-row>
     </v-list-subheader>
@@ -36,15 +36,19 @@
         <div v-if="!isAddingNewSubCate" class="icons">
           <v-btn icon @click="addNewSubCate" size="small">
             <v-icon>mdi-plus</v-icon>
+            <v-tooltip activator="parent" location="top">
+              <div class="custom-tooltip-content">Add Category</div>
+            </v-tooltip>
           </v-btn>
         </div>
         <template v-if="isAddingNewSubCate">
           <v-text-field
             class="add-category"
             v-model="categoriesStore.newItem.title"
-            label="Enter new submenu name"
+            label="Enter new Category name"
             density="compact"
             ref="newCategory"
+            :rules="validateExistence"
           ></v-text-field>
           <div class="icons">
             <v-btn
@@ -55,7 +59,7 @@
               density="compact"
               variant="text"
             >
-              <v-icon color="grey">mdi-close</v-icon>
+              <v-icon color="grey" size="x-large">mdi-close-circle-outline</v-icon>
             </v-btn>
             <v-btn
               icon
@@ -63,8 +67,9 @@
               @click="addNewCategory"
               density="compact"
               variant="text"
+              :disabled="isButtonDisabled"
             >
-              <v-icon color="grey">mdi-check</v-icon>
+              <v-icon color="grey" size="x-large">mdi-check-circle-outline</v-icon>
             </v-btn>
           </div>
           <Dialog
@@ -84,7 +89,7 @@
 </template>
 
 <script>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { getDBInstance } from "../../js/database";
 import { usecategoriesStore } from "../../../store/categoryStore";
 import { insertCategoryToDatabase, loadCategoriesFromDatabase, deleteFromDatabase } from "../../js/category";
@@ -127,28 +132,18 @@ export default {
       isAddingNewSubCate.value = false;
       categoriesStore.clearCategory();
     };
-    const addNewCategory = async () => {
-      if (categoriesStore.newItem.title.trim() !== "") {
-        const db = await getDBInstance();
-        const result_ui = await db.select(
-          `
-      SELECT * FROM Category 
-      WHERE category_name = ? 
-      `,
-          [categoriesStore.newItem.title]
-        );
-        if (result_ui.length === 0) {
-          await insertCategoryToDatabase();
-          isAddingNewSubCate.value = false;
-          loadCategoriesFromDatabase();
-          categoriesStore.clearCategory();
-        } else {
-          showmDialog("Category is already exists!");
-        }
-      } else {
-        showmDialog("Empty data is not allowed");
+    
+    const validateExistence = computed((value) => [      
+      (value) => !categoriesStore.categories.some((category) => category.title === value) || "Category Already Exists!", ]);
+    const addNewCategory = async (value) => {      
+      if (categoriesStore.newItem.title.trim() && !categoriesStore.categories.some(category => category.title === categoriesStore.newItem.title.trim()))
+       {
+        await insertCategoryToDatabase();
+        loadCategoriesFromDatabase();
+        closefield();
       }
     };
+
     const CountByTitle = (title) => {
       const cateItem = categoriesStore.cate_count.find(
         (item) => item.category_name === title
@@ -194,6 +189,9 @@ export default {
       }
     };
 
+    const isButtonDisabled = computed (()=>
+     categoriesStore.newItem.title.trim().length === 0);
+
     return {
       categoriesStore,
       isSelected,
@@ -214,6 +212,8 @@ export default {
       mdialog,
       closemDialog,
       dialogMessage,
+      validateExistence,
+      isButtonDisabled,
     };
   },
 };
@@ -248,5 +248,15 @@ export default {
 .scroll-bar {
   height: calc(60vh - 20px);
   overflow-y: scroll;
+}
+.error-message {
+    color: red;
+    margin-top: 5px;
+    margin-left: 10px;
+  }
+  .custom-tooltip-content {
+  font-weight: bolder;
+  color: rgba(49, 13, 209, 0.986); 
+  background-color: yellow;
 }
 </style>

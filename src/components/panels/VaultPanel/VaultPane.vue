@@ -22,8 +22,8 @@ export default {
       vaultSelected: "",
       allVaults: [
         { text: "All Items", icon: "mdi-format-list-bulleted-type" },
-        { text: "Favorites", icon: "mdi-star" },
-        { text: "Frequently Used", icon: "mdi-heart" },
+        { text: "Favorites", icon: "mdi-heart" },
+        { text: "Frequently Used", icon: "mdi-star" },
       ],
       items: [],
       fav: [],

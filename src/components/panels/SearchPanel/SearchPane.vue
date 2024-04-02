@@ -6,10 +6,10 @@
           class="search-field"></v-text-field>
       </v-col>
       <v-col class="mt-2">
-        <v-btn @click="dialog = true" variant="text" icon size="large" density="compact">
+        <v-btn @click="dialog = true" variant="text" icon size="large" density="compact" title="Add">
           <v-icon size="large" color="grey">mdi-plus-circle-outline</v-icon>
         </v-btn>
-        <v-btn variant="text" icon class="ml-2" size="large" density="compact">
+        <v-btn variant="text" icon class="ml-2" size="large" density="compact" title="Delete">
           <v-icon size="large" color="grey" @click="toggleIconVisibility">{{ currentIcon }}</v-icon>
         </v-btn>
       </v-col>
@@ -37,8 +37,7 @@
     </div>
     <v-list-item v-else><p>No items</p></v-list-item>
     </v-list>
-    <AddCatalogueDialog v-model="dialog" @add-item="addNewItem()" @cancel="closeDialog()" />
-    <Dialog v-model="msgDialog" :dialogTitle="promptMsg" @msg-dialog="msgDialog = false" />
+    <AddCatalogueDialog v-model="dialog" @add-item="addNewItem()" @cancel="closeDialog()" :validateExistence="validateExistence"/>
     <deleteDialog v-model="delete_Popup" @delete-confirm="deleteItem(selecteditem)" @cancel-delete="delete_Popup = false" />
   </v-card>
 </template>
@@ -49,7 +48,7 @@ import { usecatalogueStore } from '../../../store/catalogueStore';
 import AddCatalogueDialog from './Catalcreationdialog.vue';
 import { getDBInstance } from '../../js/database';
 import { insertCatalogueToDatabase, loadcatalogues, deleteFromDatabase } from '../../js/credentialStore'
-import Dialog from '../Dialog/Dialog.vue';
+
 import deleteDialog from '../Dialog/deleteDialog.vue';
 
 export default defineComponent({
@@ -59,8 +58,7 @@ export default defineComponent({
   },
 
   components: {
-    AddCatalogueDialog,
-    Dialog,
+    AddCatalogueDialog,    
     deleteDialog,
 
   },
@@ -70,8 +68,6 @@ export default defineComponent({
     const selecteditem = ref("");
     const toggleIcon = ref(false);
     const delete_Popup = ref(false);
-    const promptMsg = ref("");
-    const msgDialog = ref(false);
     const icons = ref(["mdi-delete-circle-outline", "mdi-close-circle-outline"]);
     const currentIndex = ref(0);
     const searchQuery = ref('');
@@ -100,12 +96,12 @@ export default defineComponent({
       toggleIcon.value = !toggleIcon.value;
       currentIndex.value = (currentIndex.value + 1) % icons.value.length;
     };
-
+/* 
     const alertDialog = (alertmsg) => {
       promptMsg.value = alertmsg;
       msgDialog.value = true;
     };
-
+ */
     const closeDialog = () => {
       dialog.value = false;
       catalogueStore.clearCatalogueItem();
@@ -127,6 +123,21 @@ export default defineComponent({
       }
     }
 
+    const validateExistence = computed((value) => [      
+      (value) =>
+      !catalogueStore.catalogueListed.some(
+          (item) => item.title === value) ||
+        "Already Exists!",
+    ]); 
+    const addNewItem = async (value) => {      
+      if (catalogueStore.newItem.title.trim() && !catalogueStore.catalogueListed.some(item => item.title === catalogueStore.newItem.title.trim()))
+      {
+        await insertCatalogueToDatabase(selecteditem, selectCred, props.selectedCateId);
+        catalogueStore.addCatalogueItem();
+        closeDialog();
+      }
+    };
+/* 
     const addNewItem = async () => {
       if (catalogueStore.newItem.title.trim() !== "") {
         const db = await getDBInstance();
@@ -146,6 +157,7 @@ export default defineComponent({
       }
 
     };
+     */
     ////Passing csid ..///
     const selectCred = async (selectedItem) => {
       try {
@@ -189,11 +201,12 @@ export default defineComponent({
       deleteItem,
       currentIcon,
       icons,
-      alertDialog,
-      msgDialog,
-      promptMsg,
+      //alertDialog,
+      // msgDialog,
+      // promptMsg,
       searchQuery,
       filteredItems,
+      validateExistence,
     };
   },
 });

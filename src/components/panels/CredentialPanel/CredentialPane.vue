@@ -10,11 +10,15 @@
               :readonly="!isEditing" />
           </v-col>
           <v-spacer></v-spacer>
-          <v-btn class="mt-5 " icon @click="toggleEdit()">
-            <v-icon>{{ isEditing ? 'mdi-eye' : 'mdi-pencil' }}</v-icon>
+          <v-btn class="mt-5 " icon size="large" density="compact" @click="toggleEdit()" :title="buttonTitle">
+            <v-icon size="large" >{{ isEditing ? 'mdi-eye-circle-outline' : 'mdi-pencil-circle-outline' }}</v-icon>
           </v-btn>
-          <v-btn class="mt-5 md-5 ml-2" icon="mdi-plus" @click="addTextField(), additionClicked = true"></v-btn>
-          <v-btn class="mt-5 md-5 ml-2" icon="mdi-heart"></v-btn>
+          <v-btn class="mt-5 md-5 ml-2" icon size="large" density="compact" @click="addTextField(), additionClicked = true" title="Add">
+            <v-icon size="large" >mdi-plus-circle-outline</v-icon>
+          </v-btn>
+          <v-btn class="mt-5 md-5 ml-2" icon size="large" density="compact" title="Favourite">
+            <v-icon size="large">mdi-heart-outline</v-icon>
+          </v-btn>
         </v-row>
         <v-divider />
         <div v-for="(field, index) in credentialStore.credData.fields" :key="index" class="creds-view">
@@ -33,7 +37,7 @@
 <script>
 import { useCredentialStore } from '../../../store/credential';
 import SecretRow from './SecretRow.vue';
-import { watchEffect, ref } from 'vue';
+import { watchEffect, ref,computed } from 'vue';
 import { insertNewfield, saveCredentialToDatabase } from '../../js/credential';
 import { loadCredentialData } from '../../js/credential';
 
@@ -76,6 +80,10 @@ export default {
       isEditing.value = !isEditing.value;
     };
 
+    const buttonTitle = computed(() => {
+      return isEditing.value ? 'Hide' : 'Edit';
+    });
+
     return {
       credentialStore,
       isFavorite: false,
@@ -83,8 +91,8 @@ export default {
       isEditing,
       save,
       addTextField,
-      additionClicked
-
+      additionClicked,
+      buttonTitle,
 
     };
   },

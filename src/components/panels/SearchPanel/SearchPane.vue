@@ -170,9 +170,7 @@ export default defineComponent({
       loadcatalogues(props.selectedCateId);
     });
 
-    onMounted(() => {
-      loadcatalogues();
-    })
+    
     return {
       props,
       catalogueStore,

@@ -28,11 +28,11 @@ export async function insertCategoryToDatabase() {
   try {
     const db = await getDBInstance();
     const categoriesStore = usecategoriesStore();
-      await db.execute(`
+    await db.execute(`
           INSERT INTO Category (category_name, category_icon)
           VALUES (?, ?)
        `, [categoriesStore.newItem.title, categoriesStore.newItem.icon]);
-      console.log('Category inserted into the database successfully!');
+    console.log('Category inserted into the database successfully!');
   } catch (error) {
     console.error('Error inserting category into the database:', error);
   }
@@ -75,21 +75,22 @@ export async function innerjoin() {
     console.error('Error loading Catalogue into the database:', error);
   }
 }
-export async function deleteFromDatabase (selectedItem)  {
+export async function deleteFromDatabase(selectedItem) {
   try {
     const db = await getDBInstance();
-    
+    const categoriesStore = usecategoriesStore();
     const result = await db.select(`
-    SELECT category_id, category_name FROM Category WHERE category_name = ? 
-    `, [selectedItem]);    
+    SELECT category_id FROM Category WHERE category_name = ? 
+    `, [selectedItem]);
     if (result.length === 1) {
       const id = result[0].category_id;
+      categoriesStore.removeCategory(id);
       await db.execute(`
-        DELETE FROM Category WHERE category_id = ?
-      `, [id]);
+        DELETE FROM Credential_Category WHERE category_id = ?;
+        DELETE FROM Category WHERE category_id = ?;
+      `, [id,id]);
       console.log('Item deleted successfully!');
-      await loadCategoriesFromDatabase()
-
+      await loadCategoriesFromDatabase();
     } else {
       console.error('Invalid or missing data for selected item.');
     }

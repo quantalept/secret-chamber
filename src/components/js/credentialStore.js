@@ -37,20 +37,20 @@ export async function insertcred_category(lastInsertId, cate_id) {
     console.error('Error loading Catalogue into the database:', error);
   }
 }
-export async function loadcatalogues(csid) {
+export async function loadcatalogues(id) {
   try {
     const db = await getDBInstance();
     const catalogueStore = usecatalogueStore();
     let result;
 
-    if (csid) {
+    if (id) {
       result = await db.select(`
         SELECT Category.category_name,Credential_Store.cs_name,Credential_Store.secondary_info
         FROM Credential_Category
         INNER JOIN Credential_Store ON  Credential_Category.cs_id=Credential_Store.cs_id
         INNER JOIN Category ON Credential_Category.category_id=Category.category_id
         WHERE Category.category_id = ?
-      `, [csid]);
+      `, [id]);
     } else {
       result = await db.select(`
         SELECT * FROM Credential_Store
@@ -62,7 +62,6 @@ export async function loadcatalogues(csid) {
       desc: row.secondary_info,
     }));
     catalogueStore.catalogueListed = fields
-    await innerjoin();
   } catch (error) {
     console.error('Error loading Catalogue into the database:', error);
   }
@@ -72,11 +71,13 @@ export async function deleteFromDatabase(selectedItem){
     const db = await getDBInstance();
     const title = "";
     const credentialStore = useCredentialStore();
+    const catalogueStore = usecatalogueStore();
     const result = await db.select(`
     SELECT cs_id FROM Credential_Store WHERE cs_name = ? 
     `, [selectedItem]);
     if (result.length === 1) {
       const cs_id = result[0].cs_id;
+      catalogueStore.removeId(cs_id);
       await db.execute(`
         DELETE FROM Credential WHERE cs_id = ?;
         DELETE FROM Credential_Category WHERE cs_id = ?;
@@ -84,7 +85,7 @@ export async function deleteFromDatabase(selectedItem){
       `, [cs_id,cs_id,cs_id]);
       console.log('Item deleted successfully!');
       credentialStore.credData.title = title;
-      await loadcatalogues();
+      await innerjoin();
       await loadCredentialData();
     } else {
       console.error('Invalid or missing data for selected item.');

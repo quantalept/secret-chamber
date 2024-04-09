@@ -27,7 +27,7 @@
         <v-btn @click="save()">Save</v-btn>
       </v-card-actions>
     </v-form>
-    <chipss :lastInsertId="selectedCsId"></chipss>
+    <chips :lastInsertId="selectedCsId"></chips>
   </v-card>
 </template>
 
@@ -37,7 +37,7 @@ import SecretRow from './SecretRow.vue';
 import { watchEffect, ref } from 'vue';
 import { insertNewfield, saveCredentialToDatabase } from '../../js/credential';
 import { loadCredentialData } from '../../js/credential';
-import Chipss from './Chips.vue';
+import Chips from './Chips.vue';
 
 export default {
   props: {
@@ -46,7 +46,7 @@ export default {
   },
   components: {
     SecretRow,
-    Chipss
+    Chips
   },
 
   setup(props) {
